@@ -7,7 +7,9 @@ Crafty.sprite('./images/drop.png', {drop:[0,0,44,84]});
 Crafty.sprite('./images/ellipse.png', {ellipse:[0,0,74,30]});
 Crafty.sprite('./images/particles.png', {particles:[0,0,65,51]});
 Crafty.sprite('./images/umbrella.png', {umbrella:[0,0,144,145]});
-Crafty.sprite('./images/pause-btn.png', {pauseBtn:[0,0,63,63]});
+Crafty.sprite('./images/drop-icon.png', {dropIcon:[0,0,24,37]});
+Crafty.sprite(63, 63, './images/btns.png', {pauseBtn:[0,0], playBtn:[1,0]}, 0);
+Crafty.sprite(43, 39, './images/hearts.png', {heartRed:[0,0], heartBlack:[1,0]}, 1);
 
 Crafty.init(screenWidth, screenHeight, document.getElementById('game'));
 
@@ -16,6 +18,7 @@ let heroDir = 1;
 let canMove = true;
 const roomLeftBound = 50;
 const roomRightBound = (screenWidth - 50) - 89;
+let scores = 0;
 
 var controller = Crafty.e('Delay');
 
@@ -206,6 +209,52 @@ Crafty.c('PauseBtn', {
     }
 });
 
+Crafty.c('Hearts', {
+    init: function() {
+        this.addComponent('2D, Canvas');
+        this.x = screenWidth / 2 - 62;
+        this.y = 52;
+        this.z = 10;
+        this.heartsArr = ['Heart', 'Heart', 'Heart'];
+        this.heartStep = this.x;
+        this.heartsArr.forEach(elem => {
+            Crafty.e(elem).place(this.heartStep, this.y);
+            this.heartStep = this.heartStep + 45;
+        });
+    }
+});
+
+Crafty.c('Heart', {
+    init: function() {
+        this.addComponent('2D, Canvas, heartRed');
+        this.w = 35;
+        this.h = 32;
+        this.z = 10;
+    },
+    place: function(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+});
+
+Crafty.c('Score', {
+    init: function() {
+        this.addComponent('2D, Canvas');
+        this.x = screenWidth - 140;
+        this.y = 55;
+        this.z = 10;
+        Crafty.e('2D, Canvas, dropIcon').attr({x: this.x, y: this.y, w: 17, h: 26, z: 10});
+        Crafty.e('2D, Canvas, Text')
+            .attr({x: this.x + 32, y: this.y + 2, z: 10})
+            .text('0000')
+            .textColor('#376067')
+            .textFont({
+                'family': 'Poppins',
+                'size': '28px'
+            });
+    }
+});
+
 
 controller.delay( function() {
     let xPos = Crafty.math.randomInt(roomLeftBound, roomRightBound);
@@ -215,4 +264,6 @@ controller.delay( function() {
 var hero = Crafty.e('Hero');
 var umbrella = Crafty.e('Umbrella');
 var pauseBtn = Crafty.e('PauseBtn');
+var hearts = Crafty.e('Hearts');
+var score = Crafty.e('Score');
 

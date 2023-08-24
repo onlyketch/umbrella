@@ -63,6 +63,16 @@ body {
 	height: 100%;
 }
 
+@font-face {
+	font-display: swap; 
+    font-family: "Poppins";
+    src: local('Poppins'),
+    	 url('../fonts/Poppins-Regular.woff2') format("woff2"),
+         url('../fonts/Poppins-Regular.woff') format("woff");  
+    font-weight: 700;
+    font-style: normal;
+}
+
 #game {
 	background-image: url('../images/background.jpg');
 	background-position: center;
