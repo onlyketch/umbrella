@@ -19,17 +19,29 @@ let canMove = true;
 const roomLeftBound = 50;
 const roomRightBound = (screenWidth - 50) - 89;
 let scores = 0;
+let lives = 3;
 
 var controller = Crafty.e('Delay');
 
 Crafty.c('Umbrella', {
     init: function() {
-        this.addComponent('2D, Canvas, umbrella, Draggable');
+        this.addComponent('2D, Canvas, umbrella, Collision');
         this.w = 90;
         this.h = 90;
         this.x = screenWidth / 2 - this.w / 2;
         this.y = screenHeight / 2 - this.h / 2;
         this.z = 3;
+        this.collision(20, 0, 70, 0, 90, 42, 0, 42);
+    }
+});
+
+Crafty.c('ParentUmbrella', {
+    init: function() {
+        this.addComponent('2D, Canvas, Draggable');
+        this.w = 90;
+        this.h = 90;
+        this.x = screenWidth / 2 - this.w / 2;
+        this.y = screenHeight / 2 - this.h / 2;
     }
 });
 
@@ -98,29 +110,40 @@ Crafty.c('dropObj', {
     init: function() {
         this.addComponent("2D, Canvas, drop, Collision");
         this.type = Crafty.math.randomElementOfArray(['small', 'medium', 'large']);
-        this.z = 2;
+        this.z = 4;
         this.checkHits('hero');
         this.onHit('Umbrella', function(HitData) {
             Crafty.e('SmallDrop').place(this.x, this.y, this.w, this.h);
             Crafty.e('SmallDrop').place(this.x, this.y, this.w, this.h);
             Crafty.e('SmallDrop').place(this.x, this.y, this.w, this.h);
+            switch (this.type) {
+                case 'small':
+                    scores += 30;
+                    break;
+                case 'medium':
+                    scores += 20;
+                    break;
+                case 'large':
+                    scores += 10;
+                    break;        
+            }
             this.destroy();
         });
         switch (this.type) {
             case 'small':
                 this.w = 30;
                 this.h = 57;
-                this.speed = 3;
+                this.speed = 6;
                 break;
             case 'medium':
                 this.w = 34;
                 this.h = 64;
-                this.speed = 2.5;
+                this.speed = 5;
                 break;
             case 'large':
-                this.w = 40;
-                this.h =76;
-                this.speed = 2;
+                this.w = 38;
+                this.h =72;
+                this.speed = 4;
                 break;        
         }
     },
@@ -141,6 +164,14 @@ Crafty.c('dropObj', {
         },
         "HitOn": function(hitData) {
             Crafty.e('Particles');
+            for (let i = 0; i < hearts.heartsArr.length; i++) {
+                if (hearts.heartsArr[i].has('heartRed')) {
+                    hearts.heartsArr[i].removeComponent('heartRed');
+                    hearts.heartsArr[i].addComponent('heartBlack');
+                    hearts.heartsArr[i].attr({w: 35, h: 32});
+                    break;
+                }
+            }
             this.destroy();
         }
     }
@@ -151,7 +182,7 @@ Crafty.c('SmallDrop', {
         this.addComponent('2D, Canvas, drop');
         this.w = 10;
         this.h = 19;
-        this.z = 2;
+        this.z = 4;
         this.origin('center');
         this.dir = Crafty.math.negate(0.5);
         this.speed = Crafty.math.randomNumber(2,4);
@@ -215,12 +246,13 @@ Crafty.c('Hearts', {
         this.x = screenWidth / 2 - 62;
         this.y = 52;
         this.z = 10;
-        this.heartsArr = ['Heart', 'Heart', 'Heart'];
         this.heartStep = this.x;
-        this.heartsArr.forEach(elem => {
-            Crafty.e(elem).place(this.heartStep, this.y);
+        this.heartsArr = [];
+        for (let i = 0; i < 3; i++) {
+            this.heartsArr.push(Crafty.e('Heart'));
+            this.heartsArr[i].place(this.heartStep, this.y);
             this.heartStep = this.heartStep + 45;
-        });
+        }
     }
 });
 
@@ -246,7 +278,13 @@ Crafty.c('Score', {
         Crafty.e('2D, Canvas, dropIcon').attr({x: this.x, y: this.y, w: 17, h: 26, z: 10});
         Crafty.e('2D, Canvas, Text')
             .attr({x: this.x + 32, y: this.y + 2, z: 10})
-            .text('0000')
+            .text( function() {
+                if (scores < 10) return `000${scores}`;
+                else if (scores > 9 && scores < 100) return `00${scores}`;
+                else if (scores > 99 && scores < 1000) return `0${scores}`;
+                else return scores;
+            })
+            .dynamicTextGeneration(true)
             .textColor('#376067')
             .textFont({
                 'family': 'Poppins',
@@ -259,11 +297,13 @@ Crafty.c('Score', {
 controller.delay( function() {
     let xPos = Crafty.math.randomInt(roomLeftBound, roomRightBound);
     Crafty.e('dropObj').place(xPos, -76);
-}, 2000, -1);
+}, 500, -1);
 
 var hero = Crafty.e('Hero');
 var umbrella = Crafty.e('Umbrella');
+var parentUmbrella = Crafty.e('ParentUmbrella').attach(umbrella);
 var pauseBtn = Crafty.e('PauseBtn');
 var hearts = Crafty.e('Hearts');
 var score = Crafty.e('Score');
+
 
